@@ -1,244 +1,183 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marcar Voto Restringido - Simulador</title>
+    <title>¡Vota por Fajardo! - Cambio. Serio. Seguro.</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        #contenedor-tarjeton {
-            position: relative;
-            display: inline-block;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            background-color: white;
-            padding: 10px;
-            margin-top: 15px;
-            border-radius: 4px;
-        }
-
         #lienzo-dibujo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 10;
-            /* Aquí está el cambio: Un cursor personalizado en forma de bolígrafo */
+            touch-action: none; /* Crucial para móviles */
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size: 24px"><text y="24">🖊️</text></svg>') 0 24, crosshair;
         }
         .color-btn.selected {
-            outline: 4px solid red;
+            outline: 4px solid #002D62;
             outline-offset: 2px;
         }
+        img { pointer-events: none; user-select: none; }
     </style>
 </head>
 <body class="bg-[#FFBF00] text-[#002D62] min-h-screen flex flex-col items-center p-4 sm:p-8">
+
     <header class="text-center mb-6">
-        <h1 class="text-3xl md:text-5xl font-black tracking-tighter uppercase mb-2">
-            CAMBIO. SERIO. SEGURO.
-        </h1>
+        <h1 class="text-3xl md:text-5xl font-black tracking-tighter uppercase mb-2">CAMBIO. SERIO. SEGURO.</h1>
         <div class="bg-[#C8102E] text-[#FFBF00] text-5xl md:text-7xl font-black py-4 px-12 rounded-lg shadow-2xl inline-block tracking-widest transform -rotate-1">
             FAJARDO
         </div>
     </header>
-    <!-- Instrucciones -->
+
     <section class="bg-white border-4 border-[#C8102E] p-4 md:p-6 rounded-2xl shadow-xl max-w-2xl w-full text-center mb-8">
         <p class="text-lg md:text-xl font-bold italic">
             ¡Marca tu apoyo a Fajardo!<br>
             <span class="text-sm md:text-base font-normal block mt-2 text-gray-700">
-                Usa el lápiz en el área permitida, elige tu color, descarga tu voto y comparte!.
+                Usa el lápiz en el recuadro, elige tu color y descarga tu voto en **HD**.
             </span>
         </p>
     </section>
-    <div id="contenedor-tarjeton" class="relative bg-white p-2 md:p-4 rounded-xl shadow-[0_20px_50px_rgba(200,16,46,0.3)] border-4 border-[#C8102E] max-w-full overflow-hidden">
-        <img src="tarjeta.jpeg" alt="Tarjetón electoral" id="imagen-tarjeton">
-        <canvas id="lienzo-dibujo"></canvas>
+
+    <div class="relative bg-white p-2 rounded-xl shadow-2xl border-4 border-[#C8102E] max-w-full inline-block overflow-hidden">
+        <div class="relative inline-block">
+            <img src="tarjeta.jpeg" alt="Tarjetón" id="imagen-tarjeton" class="block w-full h-auto max-w-[600px]">
+            <canvas id="lienzo-dibujo" class="absolute top-0 left-0 w-full h-full z-10"></canvas>
+        </div>
     </div>
+
     <div class="flex gap-4 my-8">
-        <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="black" style="background-color: black;"></button>
-        <button class="color-btn selected w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="red" style="background-color: red;"></button>
+        <button class="color-btn selected w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="#002D62" style="background-color: #002D62;"></button>
+        <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="#C8102E" style="background-color: #C8102E;"></button>
         <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="#6A0DAD" style="background-color: #6A0DAD;"></button>
     </div>
+
     <div class="flex flex-wrap justify-center gap-4 w-full max-w-2xl mb-8">
-        <button id="boton-borrar" class="bg-[#C8102E] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#9B0C22] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
-            🗑️ Limpiar
-        </button>
-        <button id="boton-descargar" class="bg-[#002D62] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#001A40] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
-            📥 Descargar (HD)
-        </button>
-        <button id="boton-compartir" class="bg-[#6A0DAD] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#4C087A] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
-            📤 Compartir
-        </button>
+        <button id="boton-descargar" class="bg-[#002D62] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#001A40] shadow-lg w-full sm:w-auto">📥 Descargar (HD)</button>
+        <button id="boton-compartir" class="bg-[#6A0DAD] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#4C087A] shadow-lg w-full sm:w-auto">📤 Compartir</button>
+         <button id="boton-borrar" class="bg-[#C8102E] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#9B0C22] shadow-lg w-full sm:w-auto">🗑️ Limpiar</button>
     </div>
-    <footer class="text-center pb-10">
-        <p class="text-xl font-black text-[#C8102E] animate-pulse">¡CAMBIO. SERIO. SEGURO YA VIENE!</p>
-    </footer>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const image = document.getElementById('imagen-tarjeton');
             const canvas = document.getElementById('lienzo-dibujo');
             const ctx = canvas.getContext('2d');
-            const clearBtn = document.getElementById('boton-borrar');
-            const coordsHelp = document.getElementById('ayuda-coordenadas');
-            const colorButtons = document.querySelectorAll('.color-btn');
             
-            // --- CONFIGURACIÓN DE LA ZONA PERMITIDA --- //
-            // Estas coordenadas definen el rectángulo sobre el recuadro "VOTO EN BLANCO".
-            // Los valores son relativos al tamaño máximo (clientWidth de la imagen), no píxeles absolutos.
-            // Para la imagen cargada a un clientWidth máximo de 600px:
-            let zonaPermitida = {
-                xMin: 20,  // Borde izquierdo de "VOTO EN BLANCO"
-                yMin: 290,  // Borde superior de "VOTO EN BLANCO"
-                xMax: 80,  // Borde derecho de "VOTO EN BLANCO"
-                yMax: 356   // Borde inferior de "VOTO EN BLANCO"
-            };
-            // --------------------------------------------- //
-
+            // CONFIGURACIÓN DE ZONA (En porcentaje 0-100 para ser responsive)
+            // Ajusta estos valores según dónde esté el recuadro de Fajardo en tu imagen
+            const zona = { xMin: 20, yMin: 450, xMax: 120, yMax: 546 };
             let isDrawing = false;
-            let lastX = 0;
-            let lastY = 0;
+            let lastX = 0, lastY = 0;
+            let currentColor = '#002D62';
 
-            // Función para ajustar el tamaño del lienzo
             function ajustarLienzo() {
+                // Para no perder el dibujo al redimensionar, guardamos el contenido
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                tempCtx.drawImage(canvas, 0, 0);
+
+                // Ajustamos tamaño real a tamaño visual
                 canvas.width = image.clientWidth;
                 canvas.height = image.clientHeight;
-                /* También puedes cambiar el color aquí para simular tinta azul o negra */
-                ctx.strokeStyle = 'red'; 
-                ctx.lineWidth = 2;       
-                ctx.lineJoin = 'round';  
-                ctx.lineCap = 'round';   
+
+                // Restauramos el dibujo escalado (opcional, mejor limpiar para evitar bugs visuales)
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = currentColor;
             }
 
-            // Asegurar ajuste al cargar imagen
-            if (image.complete) {
-                ajustarLienzo();
-            } else {
-                image.addEventListener('load', ajustarLienzo);
-            }
+            window.addEventListener('load', ajustarLienzo);
+            window.addEventListener('resize', ajustarLienzo);
 
-            // Función para obtener coordenadas exactas
-            function obtenerCoordenadas(e) {
+            function getCoords(e) {
                 const rect = canvas.getBoundingClientRect();
-                if (e.type.includes('touch')) {
-                    return {
-                        x: e.touches[0].clientX - rect.left,
-                        y: e.touches[0].clientY - rect.top
-                    };
-                } else {
-                    return {
-                        x: e.clientX - rect.left,
-                        y: e.clientY - rect.top
-                    };
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                console.log(x,y)
+                return { x, y };
+            }
+
+            function estaEnZona(x, y) {
+                const px = (x / canvas.width) * 100;
+                const py = (y / canvas.height) * 100;
+                return px >= zona.xMin && px <= zona.xMax && py >= zona.yMin && py <= zona.yMax;
+            }
+
+            const empezar = (e) => {
+                const { x, y } = getCoords(e);
+                if (estaEnZona(x, y)) {
+                    isDrawing = true;
+                    [lastX, lastY] = [x, y];
                 }
-            }
+            };
 
-            // --- FUNCIÓN CRÍTICA: VERIFICAR SI ESTÁ EN LA ZONA --- //
-            function estaEnZonaPermitida(x, y) {
-                return (
-                    x >= zonaPermitida.xMin &&
-                    x <= zonaPermitida.xMax &&
-                    y >= zonaPermitida.yMin &&
-                    y <= zonaPermitida.yMax
-                );
-            }
-            // --------------------------------------------------- //
+            const dibujar = (e) => {
+                if (!isDrawing) return;
+                const { x, y } = getCoords(e);
+                if (estaEnZona(x, y)) {
+                    if(e.cancelable) e.preventDefault();
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    [lastX, lastY] = [x, y];
+                } else { isDrawing = false; }
+            };
 
-            // --- MODO DE AYUDA DE COORDENADAS --- //
-            // Al hacer un solo clic (mousedown sin mover), registrar coordenadas en la consola.
-            canvas.addEventListener('mousedown', (e) => {
-                const coords = obtenerCoordenadas(e);
-                console.log(`%c[CONFIGURACIÓN] Clic en coordenadas: x=${Math.round(coords.x)}, y=${Math.round(coords.y)}`, 'color: #0f0; background: #222; font-weight: bold;');
-            });
-            // ------------------------------------ //
-            colorButtons.forEach(btn => {
+            canvas.addEventListener('mousedown', empezar);
+            window.addEventListener('mousemove', dibujar);
+            window.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('touchstart', empezar, {passive: false});
+            canvas.addEventListener('touchmove', dibujar, {passive: false});
+            canvas.addEventListener('touchend', () => isDrawing = false);
+
+            // Cambio de color
+            document.querySelectorAll('.color-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    colorButtons.forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
                     currentColor = btn.dataset.color;
                     ctx.strokeStyle = currentColor;
                 });
             });
 
-            // --- Lógica de Dibujo ---
-
-            function iniciarDibujo(e) {
-                const coords = obtenerCoordenadas(e);
-                
-                // SOLO PERMITIR INICIAR SI EL CLIC ES DENTRO DE LA ZONA
-                if (estaEnZonaPermitida(coords.x, coords.y)) {
-                    isDrawing = true;
-                    [lastX, lastY] = [coords.x, coords.y];
-                } else {
-                    // Si haces clic fuera, no haces nada.
-                    isDrawing = false; 
-                }
-            }
-
-            function dibujar(e) {
-                if (!isDrawing) return;
-                
-                const coords = obtenerCoordenadas(e);
-
-                // DIBUJAR SOLO SI EL MOVIMIENTO SIGUE DENTRO DE LA ZONA
-                if (estaEnZonaPermitida(coords.x, coords.y)) {
-                    // Prevenir scroll en táctil solo dentro de la zona
-                    if(e.type.includes('touch')) e.preventDefault(); 
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
-                    ctx.lineTo(coords.x, coords.y);
-                    ctx.stroke();
-                    [lastX, lastY] = [coords.x, coords.y];
-                } else {
-                    // Si el movimiento sale de la zona, detén el dibujo
-                    detenerDibujo();
-                }
-            }
-
-            function detenerDibujo() {
-                isDrawing = false;
-                ctx.beginPath(); 
-            }
-
-            // Eventos del Mouse
-            canvas.addEventListener('mousedown', iniciarDibujo);
-            window.addEventListener('mousemove', dibujar);
-            window.addEventListener('mouseup', detenerDibujo);
-
-            // Eventos Táctiles
-            canvas.addEventListener('touchstart', iniciarDibujo);
-            canvas.addEventListener('touchmove', dibujar, { passive: false });
-            canvas.addEventListener('touchend', detenerDibujo);
-
-            // Botón Limpiar
-            clearBtn.addEventListener('click', () => {
+            document.getElementById('boton-borrar').addEventListener('click', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             });
-            
-            // Reajuste por redimensionado de ventana
-            window.addEventListener('resize', ajustarLienzo);
+
+            // --- MOTOR HD ---
+            function procesarImagenAltaResolucion() {
+                const out = document.createElement('canvas');
+                out.width = image.naturalWidth;
+                out.height = image.naturalHeight;
+                const oCtx = out.getContext('2d');
+                
+                // Fondo
+                oCtx.drawImage(image, 0, 0);
+                
+                // Dibujo escalado
+                oCtx.save();
+                oCtx.scale(image.naturalWidth / canvas.width, image.naturalHeight / canvas.height);
+                oCtx.drawImage(canvas, 0, 0);
+                oCtx.restore();
+                
+                return out.toDataURL('image/jpeg', 0.9);
+            }
 
             document.getElementById('boton-descargar').addEventListener('click', () => {
-                const dataUrl = procesarImagenAltaResolucion();
                 const link = document.createElement('a');
-                link.download = `voto-fajardo-hd-${Date.now()}.jpg`;
-                link.href = dataUrl;
+                link.download = `voto-fajardo-${Date.now()}.jpg`;
+                link.href = procesarImagenAltaResolucion();
                 link.click();
             });
-            document.getElementById('boton-compartir').addEventListener('click', async () => {
-                const dataUrl = procesarImagenAltaResolucion();
-                const blob = await (await fetch(dataUrl)).blob();
-                const file = new File([blob], 'voto-fajardo.jpg', { type: 'image/jpeg' });
 
+            document.getElementById('boton-compartir').addEventListener('click', async () => {
+                const blob = await (await fetch(procesarImagenAltaResolucion())).blob();
+                const file = new File([blob], 'voto-fajardo.jpg', { type: 'image/jpeg' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        title: '¡Mi voto por Fajardo!',
-                        text: 'Cambio. Serio. Seguro. #Fajardo2026',
-                        files: [file]
-                    });
-                } else {
-                    alert("Tu navegador no soporta compartir directamente. ¡Descarga la imagen y súbela!");
-                }
+                    navigator.share({ files: [file], title: '¡Mi voto!' });
+                } else { alert("Descarga la imagen y compártela."); }
             });
         });
     </script>

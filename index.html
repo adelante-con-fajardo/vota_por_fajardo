@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcar Voto Restringido - Simulador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        #instrucciones {
+            background-color: #eaeaea;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 10px auto;
+            text-align: left;
+            border: 1px solid #ccc;
+        }
+
+        #contenedor-tarjeton {
+            position: relative;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: white;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        #imagen-tarjeton {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 600px; /* Tamaño máximo recomendado para PC */
+        }
+
+        #lienzo-dibujo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            /* Aquí está el cambio: Un cursor personalizado en forma de bolígrafo */
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size: 24px"><text y="24">🖊️</text></svg>') 0 24, crosshair;
+        }
+
+        #boton-borrar {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #e67e22; /* Naranja llamativo */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+
+        #boton-borrar:hover {
+            background-color: #d35400;
+        }
+
+        /* Área de ayuda de coordenadas (solo visible al configurar) */
+        #ayuda-coordenadas {
+            font-family: monospace;
+            background: #222;
+            color: #0f0;
+            padding: 5px;
+            margin-top: 10px;
+            display: none; /* Oculto por defecto */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Simulador de Marcación Restringida</h1>
+
+    <div id="contenedor-tarjeton">
+        <img src="tarjeta.jpeg" alt="Tarjetón electoral" id="imagen-tarjeton">
+        <canvas id="lienzo-dibujo"></canvas>
+    </div>
+
+    <div id="ayuda-coordenadas">Coordenadas: (X: 0, Y: 0)</div>
+
+    <button id="boton-borrar">Limpiar Marcación</button>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const image = document.getElementById('imagen-tarjeton');
+            const canvas = document.getElementById('lienzo-dibujo');
+            const ctx = canvas.getContext('2d');
+            const clearBtn = document.getElementById('boton-borrar');
+            const coordsHelp = document.getElementById('ayuda-coordenadas');
+
+            // --- CONFIGURACIÓN DE LA ZONA PERMITIDA --- //
+            // Estas coordenadas definen el rectángulo sobre el recuadro "VOTO EN BLANCO".
+            // Los valores son relativos al tamaño máximo (clientWidth de la imagen), no píxeles absolutos.
+            // Para la imagen cargada a un clientWidth máximo de 600px:
+            let zonaPermitida = {
+                xMin: 20,  // Borde izquierdo de "VOTO EN BLANCO"
+                yMin: 290,  // Borde superior de "VOTO EN BLANCO"
+                xMax: 80,  // Borde derecho de "VOTO EN BLANCO"
+                yMax: 356   // Borde inferior de "VOTO EN BLANCO"
+            };
+            // --------------------------------------------- //
+
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            // Función para ajustar el tamaño del lienzo
+            function ajustarLienzo() {
+                canvas.width = image.clientWidth;
+                canvas.height = image.clientHeight;
+                /* También puedes cambiar el color aquí para simular tinta azul o negra */
+                ctx.strokeStyle = 'red'; 
+                ctx.lineWidth = 2;       
+                ctx.lineJoin = 'round';  
+                ctx.lineCap = 'round';   
+            }
+
+            // Asegurar ajuste al cargar imagen
+            if (image.complete) {
+                ajustarLienzo();
+            } else {
+                image.addEventListener('load', ajustarLienzo);
+            }
+
+            // Función para obtener coordenadas exactas
+            function obtenerCoordenadas(e) {
+                const rect = canvas.getBoundingClientRect();
+                if (e.type.includes('touch')) {
+                    return {
+                        x: e.touches[0].clientX - rect.left,
+                        y: e.touches[0].clientY - rect.top
+                    };
+                } else {
+                    return {
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
+                    };
+                }
+            }
+
+            // --- FUNCIÓN CRÍTICA: VERIFICAR SI ESTÁ EN LA ZONA --- //
+            function estaEnZonaPermitida(x, y) {
+                return (
+                    x >= zonaPermitida.xMin &&
+                    x <= zonaPermitida.xMax &&
+                    y >= zonaPermitida.yMin &&
+                    y <= zonaPermitida.yMax
+                );
+            }
+            // --------------------------------------------------- //
+
+            // --- MODO DE AYUDA DE COORDENADAS --- //
+            // Al hacer un solo clic (mousedown sin mover), registrar coordenadas en la consola.
+            canvas.addEventListener('mousedown', (e) => {
+                const coords = obtenerCoordenadas(e);
+                console.log(`%c[CONFIGURACIÓN] Clic en coordenadas: x=${Math.round(coords.x)}, y=${Math.round(coords.y)}`, 'color: #0f0; background: #222; font-weight: bold;');
+            });
+            // ------------------------------------ //
+
+
+            // --- Lógica de Dibujo ---
+
+            function iniciarDibujo(e) {
+                const coords = obtenerCoordenadas(e);
+                
+                // SOLO PERMITIR INICIAR SI EL CLIC ES DENTRO DE LA ZONA
+                if (estaEnZonaPermitida(coords.x, coords.y)) {
+                    isDrawing = true;
+                    [lastX, lastY] = [coords.x, coords.y];
+                } else {
+                    // Si haces clic fuera, no haces nada.
+                    isDrawing = false; 
+                }
+            }
+
+            function dibujar(e) {
+                if (!isDrawing) return;
+                
+                const coords = obtenerCoordenadas(e);
+
+                // DIBUJAR SOLO SI EL MOVIMIENTO SIGUE DENTRO DE LA ZONA
+                if (estaEnZonaPermitida(coords.x, coords.y)) {
+                    // Prevenir scroll en táctil solo dentro de la zona
+                    if(e.type.includes('touch')) e.preventDefault(); 
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(coords.x, coords.y);
+                    ctx.stroke();
+                    [lastX, lastY] = [coords.x, coords.y];
+                } else {
+                    // Si el movimiento sale de la zona, detén el dibujo
+                    detenerDibujo();
+                }
+            }
+
+            function detenerDibujo() {
+                isDrawing = false;
+                ctx.beginPath(); 
+            }
+
+            // Eventos del Mouse
+            canvas.addEventListener('mousedown', iniciarDibujo);
+            window.addEventListener('mousemove', dibujar);
+            window.addEventListener('mouseup', detenerDibujo);
+
+            // Eventos Táctiles
+            canvas.addEventListener('touchstart', iniciarDibujo);
+            canvas.addEventListener('touchmove', dibujar, { passive: false });
+            canvas.addEventListener('touchend', detenerDibujo);
+
+            // Botón Limpiar
+            clearBtn.addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+            
+            // Reajuste por redimensionado de ventana
+            window.addEventListener('resize', ajustarLienzo);
+        });
+    </script>
+</body>
+</html>

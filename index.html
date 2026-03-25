@@ -1,33 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marcar Voto Restringido - Simulador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        #instrucciones {
-            background-color: #eaeaea;
-            padding: 15px;
-            border-radius: 8px;
-            max-width: 600px;
-            margin: 10px auto;
-            text-align: left;
-            border: 1px solid #ccc;
-        }
-
         #contenedor-tarjeton {
             position: relative;
             display: inline-block;
@@ -38,13 +18,6 @@
             border-radius: 4px;
         }
 
-        #imagen-tarjeton {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-width: 600px; /* Tamaño máximo recomendado para PC */
-        }
-
         #lienzo-dibujo {
             position: absolute;
             top: 10px;
@@ -53,48 +26,53 @@
             /* Aquí está el cambio: Un cursor personalizado en forma de bolígrafo */
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size: 24px"><text y="24">🖊️</text></svg>') 0 24, crosshair;
         }
-
-        #boton-borrar {
-            display: block;
-            margin: 20px auto;
-            padding: 12px 24px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #e67e22; /* Naranja llamativo */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-
-        #boton-borrar:hover {
-            background-color: #d35400;
-        }
-
-        /* Área de ayuda de coordenadas (solo visible al configurar) */
-        #ayuda-coordenadas {
-            font-family: monospace;
-            background: #222;
-            color: #0f0;
-            padding: 5px;
-            margin-top: 10px;
-            display: none; /* Oculto por defecto */
+        .color-btn.selected {
+            outline: 4px solid red;
+            outline-offset: 2px;
         }
     </style>
 </head>
-<body>
-
-    <h1>Simulador de Marcación Restringida</h1>
-
-    <div id="contenedor-tarjeton">
+<body class="bg-[#FFBF00] text-[#002D62] min-h-screen flex flex-col items-center p-4 sm:p-8">
+    <header class="text-center mb-6">
+        <h1 class="text-3xl md:text-5xl font-black tracking-tighter uppercase mb-2">
+            CAMBIO. SERIO. SEGURO.
+        </h1>
+        <div class="bg-[#C8102E] text-[#FFBF00] text-5xl md:text-7xl font-black py-4 px-12 rounded-lg shadow-2xl inline-block tracking-widest transform -rotate-1">
+            FAJARDO
+        </div>
+    </header>
+    <!-- Instrucciones -->
+    <section class="bg-white border-4 border-[#C8102E] p-4 md:p-6 rounded-2xl shadow-xl max-w-2xl w-full text-center mb-8">
+        <p class="text-lg md:text-xl font-bold italic">
+            ¡Marca tu apoyo a Fajardo!<br>
+            <span class="text-sm md:text-base font-normal block mt-2 text-gray-700">
+                Usa el lápiz en el área permitida, elige tu color y descarga tu voto en **Alta Definición (JPEG)**.
+            </span>
+        </p>
+    </section>
+    <div id="contenedor-tarjeton" class="relative bg-white p-2 md:p-4 rounded-xl shadow-[0_20px_50px_rgba(200,16,46,0.3)] border-4 border-[#C8102E] max-w-full overflow-hidden">
         <img src="tarjeta.jpeg" alt="Tarjetón electoral" id="imagen-tarjeton">
         <canvas id="lienzo-dibujo"></canvas>
     </div>
-
-    <div id="ayuda-coordenadas">Coordenadas: (X: 0, Y: 0)</div>
-
-    <button id="boton-borrar">Limpiar Marcación</button>
-
+    <div class="flex gap-4 my-8">
+        <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="black" style="background-color: black;"></button>
+        <button class="color-btn selected w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="red" style="background-color: red;"></button>
+        <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="#6A0DAD" style="background-color: #6A0DAD;"></button>
+    </div>
+    <div class="flex flex-wrap justify-center gap-4 w-full max-w-2xl mb-8">
+        <button id="boton-borrar" class="bg-[#C8102E] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#9B0C22] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
+            🗑️ Limpiar
+        </button>
+        <button id="boton-descargar" class="bg-[#002D62] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#001A40] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
+            📥 Descargar (HD)
+        </button>
+        <button id="boton-compartir" class="bg-[#6A0DAD] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#4C087A] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
+            📤 Compartir
+        </button>
+    </div>
+    <footer class="text-center pb-10">
+        <p class="text-xl font-black text-[#C8102E] animate-pulse">¡CAMBIO. SERIO. SEGURO YA VIENE!</p>
+    </footer>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const image = document.getElementById('imagen-tarjeton');
@@ -102,7 +80,8 @@
             const ctx = canvas.getContext('2d');
             const clearBtn = document.getElementById('boton-borrar');
             const coordsHelp = document.getElementById('ayuda-coordenadas');
-
+            const colorButtons = document.querySelectorAll('.color-btn');
+            
             // --- CONFIGURACIÓN DE LA ZONA PERMITIDA --- //
             // Estas coordenadas definen el rectángulo sobre el recuadro "VOTO EN BLANCO".
             // Los valores son relativos al tamaño máximo (clientWidth de la imagen), no píxeles absolutos.
@@ -171,7 +150,14 @@
                 console.log(`%c[CONFIGURACIÓN] Clic en coordenadas: x=${Math.round(coords.x)}, y=${Math.round(coords.y)}`, 'color: #0f0; background: #222; font-weight: bold;');
             });
             // ------------------------------------ //
-
+            colorButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    colorButtons.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    currentColor = btn.dataset.color;
+                    ctx.strokeStyle = currentColor;
+                });
+            });
 
             // --- Lógica de Dibujo ---
 
@@ -231,6 +217,29 @@
             
             // Reajuste por redimensionado de ventana
             window.addEventListener('resize', ajustarLienzo);
+
+            document.getElementById('boton-descargar').addEventListener('click', () => {
+                const dataUrl = procesarImagenAltaResolucion();
+                const link = document.createElement('a');
+                link.download = `voto-fajardo-hd-${Date.now()}.jpg`;
+                link.href = dataUrl;
+                link.click();
+            });
+            document.getElementById('boton-compartir').addEventListener('click', async () => {
+                const dataUrl = procesarImagenAltaResolucion();
+                const blob = await (await fetch(dataUrl)).blob();
+                const file = new File([blob], 'voto-fajardo.jpg', { type: 'image/jpeg' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: '¡Mi voto por Fajardo!',
+                        text: 'Cambio. Serio. Seguro. #Fajardo2026',
+                        files: [file]
+                    });
+                } else {
+                    alert("Tu navegador no soporta compartir directamente. ¡Descarga la imagen y súbela!");
+                }
+            });
         });
     </script>
 </body>

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marca tu Voto – Fajardo 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --azul: #002D62;
+            --rojo: #C8102E;
+            --amarillo: #FFBF00;
+            --azul-claro: #0A4DA3;
+            --rojo-oscuro: #9B0C22;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            min-height: 100vh;
+            background: var(--azul);
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(200,16,46,0.35) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(255,191,0,0.20) 0%, transparent 55%),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255,255,255,0.02) 40px,
+                    rgba(255,255,255,0.02) 41px
+                );
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ── HEADER ── */
+        header {
+            text-align: center;
+            padding: 36px 20px 20px;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 4px;
+            background: var(--amarillo);
+            margin: 18px auto 0;
+            border-radius: 2px;
+        }
+
+        .lema {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: clamp(0.75rem, 2.5vw, 1rem);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 10px;
+        }
+
+        .titulo-candidato {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3.5rem, 14vw, 8rem);
+            line-height: 0.9;
+            letter-spacing: 0.04em;
+            color: var(--amarillo);
+            text-shadow: 6px 6px 0 var(--rojo), 12px 12px 0 rgba(0,0,0,0.25);
+            position: relative;
+            display: inline-block;
+        }
+
+        .titulo-candidato span {
+            color: #fff;
+            font-size: 0.55em;
+            display: block;
+            letter-spacing: 0.12em;
+            text-shadow: none;
+            margin-top: 4px;
+        }
+
+        /* ── CARD INSTRUCCIONES ── */
+        .card-instrucciones {
+            max-width: 640px;
+            margin: 24px auto;
+            padding: 18px 24px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,191,0,0.25);
+            border-left: 4px solid var(--amarillo);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .card-instrucciones .icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .card-instrucciones p {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.4;
+        }
+
+        .card-instrucciones strong {
+            color: var(--amarillo);
+        }
+
+        /* ── CONTENEDOR TARJETÓN ── */
+        #wrapper-tarjeton {
+            display: flex;
+            justify-content: center;
+            padding: 0 16px;
+            margin: 8px 0;
+        }
+
+        #contenedor-tarjeton {
+            position: relative;
+            display: inline-block;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 3px var(--amarillo),
+                0 0 0 6px var(--rojo),
+                0 25px 60px rgba(0,0,0,0.5);
+            transition: box-shadow 0.3s ease;
+        }
+
+        #contenedor-tarjeton.activo {
+            box-shadow:
+                0 0 0 3px var(--amarillo),
+                0 0 0 6px var(--rojo),
+                0 0 0 10px rgba(255,191,0,0.4),
+                0 25px 60px rgba(0,0,0,0.5);
+        }
+
+        #imagen-tarjeton {
+            display: block;
+            max-width: min(480px, 90vw);
+            height: auto;
+            border-radius: 10px;
+        }
+
+        #lienzo-dibujo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            border-radius: 10px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="26" style="font-size:24px">✒️</text></svg>') 4 26, crosshair;
+        }
+
+        /* ── ZONA ACTIVA BADGE ── */
+        #badge-zona {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,45,98,0.92);
+            color: var(--amarillo);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 99px;
+            border: 1px solid rgba(255,191,0,0.4);
+            pointer-events: none;
+            z-index: 20;
+            display: none;
+        }
+
+        #contenedor-tarjeton.activo #badge-zona { display: block; }
+
+        /* ── COLORES ── */
+        .seccion-colores {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0 16px;
+        }
+
+        .etiqueta-colores {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.45);
+            margin-right: 4px;
+        }
+
+        .color-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.25);
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+
+        .color-btn:hover { transform: scale(1.15); }
+
+        .color-btn.selected {
+            border-color: #fff;
+            box-shadow: 0 0 0 3px var(--amarillo), 0 4px 14px rgba(0,0,0,0.4);
+            transform: scale(1.18);
+        }
+
+        /* ── BOTONES ACCIÓN ── */
+        .acciones {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 16px;
+            max-width: 560px;
+            margin: 0 auto 32px;
+        }
+
+        .btn-accion {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.15s, filter 0.15s, box-shadow 0.15s;
+            flex: 1;
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        .btn-accion:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-accion:active { transform: scale(0.96); }
+
+        .btn-descargar {
+            background: var(--amarillo);
+            color: var(--azul);
+            box-shadow: 0 6px 20px rgba(255,191,0,0.35);
+        }
+
+        .btn-compartir {
+            background: var(--rojo);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(200,16,46,0.35);
+        }
+
+        .btn-borrar {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: none;
+            flex: 0 0 auto;
+            min-width: unset;
+            padding: 12px 18px;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            text-align: center;
+            padding: 16px 20px 40px;
+        }
+
+        footer p {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.15em;
+            color: var(--rojo);
+            opacity: 0.85;
+        }
+
+        /* ── INDICADOR MODO ── */
+        #indicador-modo {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--azul);
+            color: var(--amarillo);
+            border: 2px solid rgba(255,191,0,0.35);
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.08em;
+            z-index: 500;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            animation: fadeUp 0.25s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        #indicador-modo.visible { display: block; }
+
+        body.scroll-bloqueado { overflow: hidden; touch-action: none; }
+
+        /* ── MODAL NOMBRE ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,10,30,0.88);
+            backdrop-filter: blur(6px);
+            z-index: 900;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal-overlay.visible { display: flex; }
+
+        .modal-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 36px 28px 28px;
+            max-width: 380px;
+            width: 100%;
+            border-top: 6px solid var(--rojo);
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+
+        .modal-card .modal-emoji { font-size: 2.8rem; margin-bottom: 10px; }
+
+        .modal-card h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--azul);
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .modal-card p {
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2.5px solid #ddd;
+            border-radius: 12px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--azul);
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 18px;
+            text-transform: capitalize;
+        }
+
+        .modal-input:focus { border-color: var(--azul); }
+        .modal-input.error { border-color: var(--rojo); animation: shake 0.3s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal-cancel {
+            flex: 1;
+            padding: 13px;
+            background: #f0f0f0;
+            color: #555;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-modal-cancel:hover { background: #e0e0e0; }
+
+        .btn-modal-confirm {
+            flex: 2;
+            padding: 13px;
+            background: var(--rojo);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-modal-confirm:hover { background: var(--rojo-oscuro); }
+
+        /* ── MODAL DESCARGA iOS ── */
+        #modal-descarga {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        #modal-descarga.visible { display: flex; }
+
+        #modal-descarga img {
+            max-width: 100%;
+            max-height: 60vh;
+            border-radius: 10px;
+            border: 3px solid var(--amarillo);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+
+        #modal-descarga p {
+            color: #fff;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 18px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        #modal-descarga strong { color: var(--amarillo); }
+
+        #btn-cerrar-modal {
+            margin-top: 18px;
+            background: var(--rojo);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <p class="lema">Simulador de voto simbólico</p>
+    <div class="titulo-candidato">
+        FAJARDO
+        <span>CAMBIO · SERIO · SEGURO</span>
+    </div>
+</header>
+
+<div class="card-instrucciones" style="max-width:640px;margin:0 auto 16px;padding:14px 20px;">
+    <span class="icon">✏️</span>
+    <p>Toca el tarjetón para activar el modo dibujo. Marca tu apoyo en el área permitida, elige color y <strong>descarga tu imagen</strong>.</p>
+</div>
+
+<div id="wrapper-tarjeton">
+    <div id="contenedor-tarjeton">
+        <img src="tarjeta.jpeg" alt="Tarjetón electoral" id="imagen-tarjeton" crossorigin="anonymous">
+        <canvas id="lienzo-dibujo"></canvas>
+        <div id="badge-zona">✏️ Modo dibujo activo</div>
+    </div>
+</div>
+
+<div class="seccion-colores">
+    <span class="etiqueta-colores">Color</span>
+    <button class="color-btn" data-color="#111111" style="background:#111;"></button>
+    <button class="color-btn selected" data-color="#C8102E" style="background:#C8102E;"></button>
+    <button class="color-btn" data-color="#002D62" style="background:#002D62;"></button>
+    <button class="color-btn" data-color="#FFBF00" style="background:#FFBF00;"></button>
+    <button class="color-btn" data-color="#1A7F37" style="background:#1A7F37;"></button>
+</div>
+
+<div class="acciones">
+    <button id="boton-descargar" class="btn-accion btn-descargar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar HD
+    </button>
+    <button id="boton-compartir" class="btn-accion btn-compartir">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Compartir
+    </button>
+    <button id="boton-borrar" class="btn-accion btn-borrar" title="Limpiar trazos">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Limpiar
+    </button>
+</div>
+
+<footer>
+    <p>¡CAMBIO. SERIO. SEGURO YA VIENE!</p>
+</footer>
+
+<!-- Indicador modo activo -->
+<div id="indicador-modo">✏️ Toca fuera del tarjetón para salir</div>
+
+<!-- Modal nombre -->
+<div id="modal-nombre" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-emoji">🗳️</div>
+        <h2>¿Cuál es tu nombre?</h2>
+        <p>Aparecerá en la imagen que vas a compartir</p>
+        <input id="input-nombre" class="modal-input" type="text" placeholder="Tu primer nombre..." maxlength="20">
+        <div class="modal-btns">
+            <button id="btn-cancelar-nombre" class="btn-modal-cancel">Cancelar</button>
+            <button id="btn-confirmar-nombre" class="btn-modal-confirm">¡Descargar!</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal iOS -->
+<div id="modal-descarga">
+    <img id="modal-imagen" src="" alt="Tu voto">
+    <p>📱 En iPhone/iPad:<br><strong>Mantén presionada la imagen → "Guardar en Fotos"</strong></p>
+    <button id="btn-cerrar-modal">✕ Cerrar</button>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const image       = document.getElementById('imagen-tarjeton');
+    const canvas      = document.getElementById('lienzo-dibujo');
+    const ctx         = canvas.getContext('2d');
+    const clearBtn    = document.getElementById('boton-borrar');
+    const colorBtns   = document.querySelectorAll('.color-btn');
+    const modal       = document.getElementById('modal-descarga');
+    const modalImg    = document.getElementById('modal-imagen');
+    const btnCerrar   = document.getElementById('btn-cerrar-modal');
+    const contenedor  = document.getElementById('contenedor-tarjeton');
+    const indicador   = document.getElementById('indicador-modo');
+    const modalNombre = document.getElementById('modal-nombre');
+    const inputNombre = document.getElementById('input-nombre');
+    const btnConfirmar= document.getElementById('btn-confirmar-nombre');
+    const btnCancelar = document.getElementById('btn-cancelar-nombre');
+
+    let modoActivo   = false;
+    let isDrawing    = false;
+    let currentColor = '#C8102E';
+    let lastX = 0, lastY = 0;
+
+    // Zona permitida en píxeles del canvas (ajusta según tu tarjeta)
+    const zonaPermitida = { xMin: 20, yMin: 290, xMax: 80, yMax: 356 };
+
+    // ─── AJUSTAR LIENZO CONSERVANDO TRAZOS ───
+    function ajustarLienzo() {
+        // Guardar trazos actuales como imagen antes de redimensionar
+        let savedImage = null;
+        if (canvas.width > 0 && canvas.height > 0) {
+            try { savedImage = canvas.toDataURL(); } catch(e) {}
+        }
+
+        canvas.width  = image.clientWidth;
+        canvas.height = image.clientHeight;
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth   = 3;
+        ctx.lineJoin    = 'round';
+        ctx.lineCap     = 'round';
+
+        // Restaurar trazos si había alguno
+        if (savedImage) {
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            img.src = savedImage;
+        }
+    }
+
+    if (image.complete) ajustarLienzo();
+    else image.addEventListener('load', ajustarLienzo);
+
+    window.addEventListener('resize', ajustarLienzo);
+
+    // ─── MODO DIBUJO ───
+    function activarModo() {
+        if (modoActivo) return;
+        modoActivo = true;
+        document.body.classList.add('scroll-bloqueado');
+        contenedor.classList.add('activo');
+        indicador.classList.add('visible');
+    }
+
+    function desactivarModo() {
+        if (!modoActivo) return;
+        modoActivo = false;
+        isDrawing  = false;
+        document.body.classList.remove('scroll-bloqueado');
+        contenedor.classList.remove('activo');
+        indicador.classList.remove('visible');
+    }
+
+    contenedor.addEventListener('mousedown',  () => activarModo());
+    contenedor.addEventListener('touchstart', () => activarModo(), { passive: true });
+
+    document.addEventListener('mousedown', (e) => {
+        if (!contenedor.contains(e.target)) desactivarModo();
+    });
+    document.addEventListener('touchstart', (e) => {
+        if (!contenedor.contains(e.target)) desactivarModo();
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (modoActivo) e.preventDefault();
+    }, { passive: false });
+
+    // ─── DIBUJO ───
+    function getCoordenadas(e) {
+        const rect   = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function enZona(x, y) {
+        return x >= zonaPermitida.xMin && x <= zonaPermitida.xMax &&
+               y >= zonaPermitida.yMin && y <= zonaPermitida.yMax;
+    }
+
+    function iniciarDibujo(e) {
+        const c = getCoordenadas(e);
+        if (enZona(c.x, c.y)) {
+            isDrawing = true;
+            [lastX, lastY] = [c.x, c.y];
+        }
+    }
+
+    function dibujar(e) {
+        if (!isDrawing) return;
+        const c = getCoordenadas(e);
+        if (enZona(c.x, c.y)) {
+            if (e.cancelable) e.preventDefault();
+            ctx.strokeStyle = currentColor;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(c.x, c.y);
+            ctx.stroke();
+            [lastX, lastY] = [c.x, c.y];
+        } else {
+            isDrawing = false;
+        }
+    }
+
+    canvas.addEventListener('mousedown',  iniciarDibujo);
+    window.addEventListener('mousemove',  dibujar);
+    window.addEventListener('mouseup',    () => isDrawing = false);
+    canvas.addEventListener('touchstart', iniciarDibujo, { passive: false });
+    canvas.addEventListener('touchmove',  dibujar,       { passive: false });
+    canvas.addEventListener('touchend',   () => isDrawing = false);
+
+    // ─── COLORES ───
+    colorBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            colorBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            currentColor    = btn.dataset.color;
+            ctx.strokeStyle = currentColor;
+        });
+    });
+
+    // ─── LIMPIAR ───
+    clearBtn.addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // ─── CERRAR MODAL iOS ───
+    btnCerrar.addEventListener('click', () => modal.classList.remove('visible'));
+
+    // ─── MODAL NOMBRE ───
+    let accionPendiente = null;
+
+    function abrirModalNombre(accion) {
+        accionPendiente = accion;
+        inputNombre.value = '';
+        inputNombre.classList.remove('error');
+        modalNombre.classList.add('visible');
+        setTimeout(() => inputNombre.focus(), 150);
+    }
+
+    btnCancelar.addEventListener('click', () => {
+        modalNombre.classList.remove('visible');
+        accionPendiente = null;
+    });
+
+    btnConfirmar.addEventListener('click', () => {
+        const nombre = inputNombre.value.trim();
+        if (!nombre) {
+            inputNombre.classList.add('error');
+            setTimeout(() => inputNombre.classList.remove('error'), 500);
+            return;
+        }
+        modalNombre.classList.remove('visible');
+        const hdCanvas = generarCanvasHD(nombre);
+        if (accionPendiente === 'descargar') ejecutarDescarga(hdCanvas);
+        if (accionPendiente === 'compartir') ejecutarCompartir(hdCanvas);
+        accionPendiente = null;
+    });
+
+    inputNombre.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') btnConfirmar.click();
+    });
+
+    // ─── GENERAR CANVAS HD CON TRAZOS ───
+    function generarCanvasHD(nombre) {
+        const bannerH  = Math.round(image.naturalHeight * 0.18);
+        const tmp      = document.createElement('canvas');
+        tmp.width      = image.naturalWidth;
+        tmp.height     = image.naturalHeight + bannerH;
+        const tCtx     = tmp.getContext('2d');
+
+        // Banner degradado
+        const grad = tCtx.createLinearGradient(0, 0, tmp.width, bannerH);
+        grad.addColorStop(0,    '#001840');
+        grad.addColorStop(0.5,  '#C8102E');
+        grad.addColorStop(1,    '#FFBF00');
+        tCtx.fillStyle = grad;
+        tCtx.fillRect(0, 0, tmp.width, bannerH);
+
+        // Barra amarilla inferior del banner (donde irá el eslogan)
+        const barraH = Math.round(bannerH * 0.32);
+        tCtx.fillStyle = '#FFBF00';
+        tCtx.fillRect(0, bannerH - barraH, tmp.width, barraH);
+
+        tCtx.textBaseline = 'middle';
+        const nombreUpper = nombre.toUpperCase();
+
+        // Línea 1: fecha
+        const f0 = Math.round(bannerH * 0.16);
+        tCtx.font = `700 ${f0}px 'Barlow Condensed', Arial, sans-serif`;
+        tCtx.textAlign = 'center';
+        tCtx.fillStyle = 'rgba(255,255,255,0.75)';
+        tCtx.fillText('El 31 de Mayo,', tmp.width / 2, bannerH * 0.16);
+
+        // Línea 2: NOMBRE vota [FAJARDO]
+        const f2 = Math.round(bannerH * 0.30);
+        tCtx.font = `900 ${f2}px 'Bebas Neue', Arial Black, sans-serif`;
+
+        const wNombre = tCtx.measureText(nombreUpper + ' ').width;
+        const wVota   = tCtx.measureText('vota ').width;
+        const wFaj    = tCtx.measureText('FAJARDO').width;
+        const pX = Math.round(f2 * 0.4), pY = Math.round(f2 * 0.1);
+        const bW = wFaj + pX * 2, bH = f2 + pY * 2, bR = Math.round(bH * 0.22);
+        const totalW = wNombre + wVota + bW;
+        const sx = tmp.width / 2 - totalW / 2;
+        // centrar en la zona del degradado (encima de la barra amarilla que ocupa 32% inferior)
+        const y2 = (bannerH * 0.68) / 2 + bannerH * 0.13;
+
+        tCtx.textAlign = 'left';
+        tCtx.shadowColor = 'rgba(0,0,0,0.3)';
+        tCtx.shadowBlur  = 6;
+
+        tCtx.fillStyle = '#FFBF00';
+        tCtx.fillText(nombreUpper + ' ', sx, y2);
+
+        tCtx.fillStyle = '#fff';
+        tCtx.fillText('vota ', sx + wNombre, y2);
+        tCtx.shadowBlur = 0;
+
+        // Badge rojo FAJARDO
+        const bx = sx + wNombre + wVota, by = y2 - bH / 2;
+        tCtx.save();
+        tCtx.translate(bx + bW / 2, by + bH / 2);
+        tCtx.shadowColor   = 'rgba(0,0,0,0.4)';
+        tCtx.shadowBlur    = 12;
+        tCtx.shadowOffsetY = 4;
+        tCtx.fillStyle = '#C8102E';
+        tCtx.beginPath();
+        tCtx.moveTo(-bW/2+bR, -bH/2);
+        tCtx.lineTo(bW/2-bR, -bH/2);
+        tCtx.arcTo(bW/2, -bH/2, bW/2, -bH/2+bR, bR);
+        tCtx.lineTo(bW/2, bH/2-bR);
+        tCtx.arcTo(bW/2, bH/2, bW/2-bR, bH/2, bR);
+        tCtx.lineTo(-bW/2+bR, bH/2);
+        tCtx.arcTo(-bW/2, bH/2, -bW/2, bH/2-bR, bR);
+        tCtx.lineTo(-bW/2, -bH/2+bR);
+        tCtx.arcTo(-bW/2, -bH/2, -bW/2+bR, -bH/2, bR);
+        tCtx.closePath();
+        tCtx.fill();
+        tCtx.shadowBlur = 0; tCtx.shadowOffsetY = 0;
+        tCtx.fillStyle = '#FFBF00';
+        tCtx.font = `900 ${f2}px 'Bebas Neue', Arial Black, sans-serif`;
+        tCtx.textAlign = 'center';
+        tCtx.textBaseline = 'alphabetic';
+        const letras  = 'FAJARDO'.split('');
+        const spacing = Math.round(f2 * 0.06);
+        const lW = letras.reduce((a, l) => a + tCtx.measureText(l).width, 0) + spacing * (letras.length - 1);
+        // Offset: subir el texto ~10% del font-size para centrado visual real con Arial Black
+        const visualOffsetY = Math.round(f2 * 0.38);
+        let lx = -lW / 2;
+        letras.forEach(l => {
+            const w = tCtx.measureText(l).width;
+            tCtx.fillText(l, lx + w / 2, visualOffsetY);
+            lx += w + spacing;
+        });
+        tCtx.restore();
+
+        // Eslogan: texto azul oscuro centrado sobre la barra amarilla
+        const f3        = Math.round(barraH * 0.72);
+        const esloganTx = '¡CAMBIO. SERIO. SEGURO!';
+        tCtx.font         = `900 ${f3}px Arial Black, sans-serif`;
+        tCtx.textAlign    = 'center';
+        tCtx.textBaseline = 'middle';
+        const esloganY    = bannerH - barraH / 2;
+
+        // Sombra suave para profundidad
+        tCtx.shadowColor   = 'rgba(0,0,0,0.18)';
+        tCtx.shadowBlur    = 4;
+        tCtx.shadowOffsetY = 2;
+        tCtx.fillStyle     = '#002D62';
+        tCtx.fillText(esloganTx, tmp.width / 2, esloganY);
+        tCtx.shadowBlur    = 0;
+        tCtx.shadowOffsetY = 0;
+
+        // ─── IMAGEN DEL TARJETÓN ───
+        tCtx.drawImage(image, 0, bannerH);
+
+        // ─── TRAZOS DEL CANVAS (ESCALADOS CORRECTAMENTE) ───
+        tCtx.save();
+        tCtx.translate(0, bannerH);
+        tCtx.scale(
+            image.naturalWidth  / canvas.width,
+            image.naturalHeight / canvas.height
+        );
+        tCtx.drawImage(canvas, 0, 0);
+        tCtx.restore();
+
+        return tmp;
+    }
+
+    function esIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+
+    function ejecutarDescarga(hdCanvas) {
+        if (esIOS()) {
+            modalImg.src = hdCanvas.toDataURL('image/jpeg', 0.95);
+            modal.classList.add('visible');
+            return;
+        }
+        hdCanvas.toBlob((blob) => {
+            const url  = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href      = url;
+            link.download  = `voto-fajardo-${Date.now()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 3000);
+        }, 'image/jpeg', 0.95);
+    }
+
+    async function ejecutarCompartir(hdCanvas) {
+        const dataUrl = hdCanvas.toDataURL('image/jpeg', 0.95);
+        try {
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob], 'voto-fajardo.jpg', { type: 'image/jpeg' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ title: '¡Vota Fajardo!', files: [file] });
+            } else if (navigator.share) {
+                await navigator.share({ title: '¡Vota Fajardo!' });
+            } else {
+                modalImg.src = dataUrl;
+                modal.classList.add('visible');
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                modalImg.src = hdCanvas.toDataURL('image/jpeg', 0.95);
+                modal.classList.add('visible');
+            }
+        }
+    }
+
+    document.getElementById('boton-descargar').addEventListener('click', () => abrirModalNombre('descargar'));
+    document.getElementById('boton-compartir').addEventListener('click', () => abrirModalNombre('compartir'));
+});
+</script>
+</body>
+</html>

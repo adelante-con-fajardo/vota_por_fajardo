@@ -7,6 +7,7 @@
     <link rel="icon" href="icono_bg.png" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --azul: #002D62;
@@ -543,6 +544,29 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
+    const SUPABASE_URL = 'https://rbipvhgyhrhmfzhcmoms.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiaXB2aGd5aHJobWZ6aGNtb21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMTA2MjQsImV4cCI6MjA4MTY4NjYyNH0.bUykMfOOmDJckkHydUiYlLjJ93clzvfU0KCh27ivHlw';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Función para registrar la visita automáticamente
+    async function registrarVisita() {
+        try {
+            const { error } = await _supabase
+                .from('page_visits_fajardo_votar') // Nombre de tu tabla en Supabase
+                .insert([
+                    { 
+                        user_agent: navigator.userAgent, // Opcional: para saber desde qué navegador entran
+                        platform: navigator.platform      // Opcional: para saber si es móvil o PC
+                    }
+                ]);
+            
+            if (error) console.error("Error al registrar visita:", error);
+        } catch (err) {
+            console.error("Error de conexión con Supabase:", err);
+        }
+    }
+    registrarVisita();
     const image       = document.getElementById('imagen-tarjeton');
     const canvas      = document.getElementById('lienzo-dibujo');
     const ctx         = canvas.getContext('2d');

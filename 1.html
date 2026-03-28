@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcar Voto Restringido - Simulador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        #contenedor-tarjeton {
+            position: relative;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: white;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        #lienzo-dibujo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size: 24px"><text y="24">🖊️</text></svg>') 0 24, crosshair;
+        }
+        .color-btn.selected {
+            outline: 4px solid red;
+            outline-offset: 2px;
+        }
+
+        body.scroll-bloqueado {
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #contenedor-tarjeton.activo {
+            outline: 4px solid #FFBF00;
+            outline-offset: 4px;
+        }
+
+        #indicador-modo {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,45,98,0.92);
+            color: #FFBF00;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            z-index: 500;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        #indicador-modo.visible {
+            display: block;
+        }
+
+        /* Modal de descarga para iOS */
+        #modal-descarga {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #modal-descarga.visible {
+            display: flex;
+        }
+        #modal-descarga img {
+            max-width: 100%;
+            max-height: 65vh;
+            border-radius: 8px;
+            border: 3px solid #FFBF00;
+        }
+        #modal-descarga p {
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 16px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        #btn-cerrar-modal {
+            margin-top: 20px;
+            background: #C8102E;
+            color: #FFBF00;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: black;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-[#FFBF00] text-[#002D62] min-h-screen flex flex-col items-center p-4 sm:p-8">
+    <header class="text-center mb-6">
+        <h1 class="text-3xl md:text-5xl font-black tracking-tighter uppercase mb-2">
+            CAMBIO. SERIO. SEGURO.
+        </h1>
+        <div class="bg-[#C8102E] text-[#FFBF00] text-5xl md:text-7xl font-black py-4 px-12 rounded-lg shadow-2xl inline-block tracking-widest transform -rotate-1">
+            FAJARDO
+        </div>
+    </header>
+
+    <section class="bg-white border-4 border-[#C8102E] p-4 md:p-6 rounded-2xl shadow-xl max-w-2xl w-full text-center mb-8">
+        <p class="text-lg md:text-xl font-bold italic">
+            ¡Marca tu apoyo a Fajardo!<br>
+            <span class="text-sm md:text-base font-normal block mt-2 text-gray-700">
+                Usa el lápiz en el área permitida, elige tu color, descarga tu voto y comparte!.
+            </span>
+        </p>
+    </section>
+
+    <div id="contenedor-tarjeton" class="relative bg-white p-2 md:p-4 rounded-xl shadow-[0_20px_50px_rgba(200,16,46,0.3)] border-4 border-[#C8102E] max-w-full overflow-hidden">
+        <img src="tarjeta.jpeg" alt="Tarjetón electoral" id="imagen-tarjeton" crossorigin="anonymous">
+        <canvas id="lienzo-dibujo"></canvas>
+    </div>
+
+    <div class="flex gap-4 my-8">
+        <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="black" style="background-color: black;"></button>
+        <button class="color-btn selected w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="red" style="background-color: red;"></button>
+        <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="#6A0DAD" style="background-color: #6A0DAD;"></button>
+        <button class="color-btn w-12 h-12 rounded-full border-4 border-white shadow-lg transition-transform hover:scale-110" data-color="#002D62" style="background-color: #002D62;"></button>
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-4 w-full max-w-2xl mb-8">
+        <button id="boton-descargar" class="bg-[#002D62] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#001A40] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
+            📥 Descargar (HD)
+        </button>
+        <button id="boton-compartir" class="bg-[#6A0DAD] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#4C087A] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
+            📤 Compartir
+        </button>
+        <button id="boton-borrar" class="bg-[#C8102E] text-[#FFBF00] px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:bg-[#9B0C22] transition-all active:scale-95 shadow-lg w-full sm:w-auto">
+            🗑️ Limpiar
+        </button>
+    </div>
+
+    <footer class="text-center pb-10">
+        <p class="text-xl font-black text-[#C8102E] animate-pulse">¡CAMBIO. SERIO. SEGURO YA VIENE!</p>
+    </footer>
+
+    <!-- Indicador de modo dibujo activo -->
+    <div id="indicador-modo">✏️ Toca fuera del tarjetón para salir</div>
+
+    <!-- Modal para iOS (no soporta descarga directa) -->
+    <div id="modal-descarga">
+        <img id="modal-imagen" src="" alt="Tu voto">
+        <p>📱 En iPhone/iPad:<br><strong>Mantén presionada la imagen → "Guardar en Fotos"</strong></p>
+        <button id="btn-cerrar-modal">✕ Cerrar</button>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const image = document.getElementById('imagen-tarjeton');
+        const canvas = document.getElementById('lienzo-dibujo');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('boton-borrar');
+        const colorButtons = document.querySelectorAll('.color-btn');
+        const modal = document.getElementById('modal-descarga');
+        const modalImg = document.getElementById('modal-imagen');
+        const btnCerrarModal = document.getElementById('btn-cerrar-modal');
+        const contenedor = document.getElementById('contenedor-tarjeton');
+        const indicador = document.getElementById('indicador-modo');
+
+        let modoActivo = false;
+
+        function activarModo() {
+            if (modoActivo) return;
+            modoActivo = true;
+            document.body.classList.add('scroll-bloqueado');
+            contenedor.classList.add('activo');
+            indicador.classList.add('visible');
+        }
+
+        function desactivarModo() {
+            if (!modoActivo) return;
+            modoActivo = false;
+            isDrawing = false;
+            document.body.classList.remove('scroll-bloqueado');
+            contenedor.classList.remove('activo');
+            indicador.classList.remove('visible');
+        }
+
+        // Activar al tocar/click sobre el tarjetón
+        contenedor.addEventListener('mousedown', (e) => {
+            activarModo();
+        });
+        contenedor.addEventListener('touchstart', (e) => {
+            activarModo();
+        }, { passive: true });
+
+        // Desactivar al tocar/click FUERA del tarjetón
+        document.addEventListener('mousedown', (e) => {
+            if (!contenedor.contains(e.target)) {
+                desactivarModo();
+            }
+        });
+        document.addEventListener('touchstart', (e) => {
+            if (!contenedor.contains(e.target)) {
+                desactivarModo();
+            }
+        }, { passive: true });
+
+        let currentColor = 'red';
+        let zonaPermitida = {
+            xMin: 20, yMin: 290, xMax: 80, yMax: 356
+        };
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function ajustarLienzo() {
+            canvas.width = image.clientWidth;
+            canvas.height = image.clientHeight;
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+        }
+
+        if (image.complete) { ajustarLienzo(); }
+        else { image.addEventListener('load', ajustarLienzo); }
+
+        function obtenerCoordenadas(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function estaEnZonaPermitida(x, y) {
+            return (x >= zonaPermitida.xMin && x <= zonaPermitida.xMax &&
+                    y >= zonaPermitida.yMin && y <= zonaPermitida.yMax);
+        }
+
+        function iniciarDibujo(e) {
+            const coords = obtenerCoordenadas(e);
+            if (estaEnZonaPermitida(coords.x, coords.y)) {
+                isDrawing = true;
+                [lastX, lastY] = [coords.x, coords.y];
+            }
+        }
+
+        function dibujar(e) {
+            if (!isDrawing) return;
+            const coords = obtenerCoordenadas(e);
+            if (estaEnZonaPermitida(coords.x, coords.y)) {
+                if (e.cancelable) e.preventDefault();
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(coords.x, coords.y);
+                ctx.stroke();
+                [lastX, lastY] = [coords.x, coords.y];
+            } else { isDrawing = false; }
+        }
+
+        // Bloquear scroll táctil en todo el body cuando modo activo
+        document.addEventListener('touchmove', (e) => {
+            if (modoActivo) e.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('mousedown', iniciarDibujo);
+        window.addEventListener('mousemove', dibujar);
+        window.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('touchstart', iniciarDibujo, { passive: false });
+        canvas.addEventListener('touchmove', dibujar, { passive: false });
+        canvas.addEventListener('touchend', () => isDrawing = false);
+
+        colorButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                currentColor = btn.dataset.color;
+                ctx.strokeStyle = currentColor;
+            });
+        });
+
+        clearBtn.addEventListener('click', () => ctx.clearRect(0, 0, canvas.width, canvas.height));
+        window.addEventListener('resize', ajustarLienzo);
+        btnCerrarModal.addEventListener('click', () => modal.classList.remove('visible'));
+
+        // Genera el canvas HD combinando imagen + trazos
+        function generarCanvasHD() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = image.naturalWidth;
+            tempCanvas.height = image.naturalHeight;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.drawImage(image, 0, 0);
+            tCtx.save();
+            tCtx.scale(image.naturalWidth / canvas.width, image.naturalHeight / canvas.height);
+            tCtx.drawImage(canvas, 0, 0);
+            tCtx.restore();
+            return tempCanvas;
+        }
+
+        // Detecta si es iOS
+        function esIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        }
+
+        // Detecta si el navegador soporta descarga real
+        function soportaDescarga() {
+            const a = document.createElement('a');
+            return typeof a.download !== 'undefined';
+        }
+
+        document.getElementById('boton-descargar').addEventListener('click', () => {
+            const hdCanvas = generarCanvasHD();
+
+            // iOS no permite descarga directa desde canvas — mostramos modal
+            if (esIOS()) {
+                const dataUrl = hdCanvas.toDataURL('image/jpeg', 0.95);
+                modalImg.src = dataUrl;
+                modal.classList.add('visible');
+                return;
+            }
+
+            // Android Chrome y otros navegadores modernos: usar toBlob + URL.createObjectURL
+            hdCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `voto-fajardo-${Date.now()}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                // Liberar memoria después de un momento
+                setTimeout(() => URL.revokeObjectURL(url), 3000);
+            }, 'image/jpeg', 0.95);
+        });
+
+        document.getElementById('boton-compartir').addEventListener('click', async () => {
+            const hdCanvas = generarCanvasHD();
+            const dataUrl = hdCanvas.toDataURL('image/jpeg', 0.95);
+
+            try {
+                const blob = await (await fetch(dataUrl)).blob();
+                const file = new File([blob], 'voto-fajardo.jpg', { type: 'image/jpeg' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: '¡Vota Fajardo!',
+                        files: [file]
+                    });
+                } else if (navigator.share) {
+                    // Compartir sin archivo (fallback)
+                    await navigator.share({ title: '¡Vota Fajardo!' });
+                } else {
+                    // Fallback: mostrar modal igual que en iOS
+                    modalImg.src = dataUrl;
+                    modal.classList.add('visible');
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    // Si falla compartir, mostrar modal
+                    const dataUrl2 = hdCanvas.toDataURL('image/jpeg', 0.95);
+                    modalImg.src = dataUrl2;
+                    modal.classList.add('visible');
+                }
+            }
+        });
+    });
+    </script>
+</body>
+</html>

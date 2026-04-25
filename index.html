@@ -470,7 +470,7 @@
     </div>
 </header>
 
-<div class="card-instrucciones" style="max-width:640px;margin:0 auto 10px;padding:5px 5px;">
+<div class="card-instrucciones" style="max-width:640px;margin:0 auto 2px;padding:5px 5px;">
     <p>Este es un simulacro de votación con fines pedagógicos para la campaña de Sergio Fajardo 2026. No reemplaza el ejercicio oficial de sufragio.</p>
 </div>
 
@@ -496,7 +496,7 @@
     <button class="color-btn" data-color="#1A7F37" style="background:#1A7F37;"></button>
 </div>
 
-<div class="acciones">
+<div class="acciones" style="margin: 0 auto; margin-bottom: 0;">
     <button id="boton-descargar" class="btn-accion btn-descargar">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Descargar HD
@@ -631,11 +631,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Zona permitida en píxeles del canvas (ajusta según tu tarjeta)
     const zonaPermitida = {
-        xMin: 7.78,   // Límite izquierdo
-        xMax: 27.06,  // Límite derecho
-        yMin: 76.15, // Límite superior (más cerca de arriba)
-        yMax: 97.26 // Límite inferior (más cerca de abajo)
-
+        xMin: 7.49,   // Límite izquierdo
+        xMax: 27.2,  // Límite derecho
+        yMin: 76.4, // Límite superior (más cerca de arriba)
+        yMax: 97.54 // Límite inferior (más cerca de abajo)
     };
     // ─── AJUSTAR LIENZO CONSERVANDO TRAZOS ───
     function ajustarLienzo() {
